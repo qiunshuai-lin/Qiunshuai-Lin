@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>林擎帥Qiunshuai Lin // 藝術家創作日誌與作品集 — Liquid Glass Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- SVG Filter for Liquid Glass Refraction & Specular Highlights -->
+  <svg class="svg-defs" aria-hidden="true">
+    <defs>
+      <filter id="liquid-refraction" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.015 0.02" numOctaves="2" result="noise" seed="5" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <linearGradient id="rainbow-prism" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#ff6b9d" />
+        <stop offset="22%" stop-color="#ffa647" />
+        <stop offset="45%" stop-color="#ffe866" />
+        <stop offset="65%" stop-color="#5ce1e6" />
+        <stop offset="85%" stop-color="#7b7fda" />
+        <stop offset="100%" stop-color="#e066ff" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- Ambient White & Iridescent Rainbow Liquid Background -->
+  <div class="ambient-canvas" aria-hidden="true">
+    <div class="liquid-orb orb-1"></div>
+    <div class="liquid-orb orb-2"></div>
+    <div class="liquid-orb orb-3"></div>
+    <div class="liquid-orb orb-4"></div>
+    <div class="caustic-mesh"></div>
+  </div>
+
+  <!-- Global Window Drag-and-Drop Overlay -->
+  <div id="global-drop-overlay" class="global-drop-overlay hidden" aria-hidden="true">
+    <div class="global-drop-card liquid-glass-heavy">
+      <div class="prism-ring"></div>
+      <div class="drop-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="17 8 12 3 7 8" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="12" y1="3" x2="12" y2="15" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2>放開檔案即可上傳至創作工作台</h2>
+      <p>支援圖片、影片、音訊與設計文件檔，將自動載入發佈器</p>
+    </div>
+  </div>
+
+  <!-- Floating Liquid Glass Header Navigation -->
+  <header class="site-header">
+    <nav class="nav-container liquid-glass" aria-label="主要導覽">
+      <a href="#portfolio" class="brand-logo" data-view="all">
+        <span class="brand-droplet"></span>
+        <div class="brand-text">
+          <span class="brand-title">林擎帥Qiunshuai Lin</span>
+          <span class="brand-subtitle">LIQUID GLASS ATELIER</span>
+        </div>
+      </a>
+
+      <div class="nav-links" id="nav-links">
+        <button class="nav-pill" data-view="portfolio">
+          作品集 <span class="badge-count" id="nav-portfolio-count">0</span>
+        </button>
+        <button class="nav-pill" data-view="blog">
+          藝術家部落格 <span class="badge-count" id="nav-blog-count">0</span>
+        </button>
+        <button class="nav-pill" data-view="contact">
+          聯絡我
+        </button>
+        <button class="nav-pill owner-only hidden" data-view="studio" id="nav-studio-pill">
+          發佈與上傳工作台
+        </button>
+      </div>
+
+      <div class="nav-actions">
+        <div class="search-box liquid-glass-inset">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="search" id="global-search" placeholder="搜尋作品、文章或 #標籤..." aria-label="搜尋作品與文章" />
+        </div>
+
+        <button class="btn-prism owner-only hidden" id="open-quick-publish">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>新增創作</span>
+        </button>
+
+        <button class="btn-glass auth-toggle-btn" id="auth-toggle-btn" title="藝術家本人登入以發佈作品與文章">
+          <svg id="auth-icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span id="auth-toggle-label">藝術家登入</span>
+        </button>
+
+        <button class="mobile-menu-btn liquid-glass-pill" id="mobile-menu-btn" aria-label="切換選單">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="7" x2="20" y2="7"></line>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="17" x2="20" y2="17"></line>
+          </svg>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="main-container">
+    <!-- Studio Upload & Blog Publisher Section (Owner Only) -->
+    <section class="studio-section owner-only hidden" id="studio-section">
+      <div class="section-header">
+        <div>
+          <span class="section-eyebrow">OWNER ONLY // CREATIVE STUDIO &amp; DROPZONE</span>
+          <h2 class="section-title">創作發佈與拖移上傳工作台（藝術家專屬）</h2>
+        </div>
+        <div class="studio-header-controls">
+          <button type="button" class="btn-glass" id="open-change-pwd-btn">
+            🔑 修改密碼
+          </button>
+          <div class="studio-mode-switch liquid-glass-inset" role="tablist">
+          <button class="mode-tab active" data-publish-mode="blog" role="tab" aria-selected="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            發佈部落格文章
+          </button>
+            <button class="mode-tab" data-publish-mode="portfolio" role="tab" aria-selected="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              新增作品集項目
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <form id="publish-form" class="studio-grid liquid-glass-heavy" novalidate>
+        <!-- Left Column: Drag and Drop File Upload Area -->
+        <div class="upload-column">
+          <div id="drop-zone" class="drop-zone liquid-glass-inset" tabindex="0" role="button" aria-label="拖移檔案或點擊上傳">
+            <input type="file" id="file-input" multiple accept="image/*,video/*,audio/*,.pdf,.txt,.md" hidden />
+            <div class="drop-zone-visual">
+              <div class="liquid-drop-orb">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-linecap="round" stroke-linejoin="round"/>
+                  <polyline points="17 8 12 3 7 8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <line x1="12" y1="3" x2="12" y2="15" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h3>拖移檔案至此，或<span class="highlight-link">點擊瀏覽檔案</span></h3>
+              <p>支援多張高畫質圖片 (JPG, PNG, WebP, GIF)、影片 (MP4, WebM)、音訊與 PDF 手稿</p>
+              <div class="supported-pills">
+                <span class="mini-pill">自動產生預覽</span>
+                <span class="mini-pill">支援多檔拖放</span>
+                <span class="mini-pill">本機 IndexedDB 永久保存</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Uploaded Files Preview Tray -->
+          <div id="upload-preview-wrap" class="upload-preview-wrap hidden">
+            <div class="preview-header">
+              <span id="preview-count-label">已選擇 0 個檔案</span>
+              <button type="button" class="text-btn" id="clear-files-btn">清空全部</button>
+            </div>
+            <div id="upload-preview-list" class="upload-preview-list"></div>
+          </div>
+        </div>
+
+        <!-- Right Column: Content & Metadata Editor -->
+        <div class="editor-column">
+          <div class="form-row-split category-manager-row">
+            <div class="form-group">
+              <label for="post-category" id="category-label">分類類別</label>
+              <select id="post-category" class="glass-input">
+                <option value="一般創作">一般創作</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="new-category-input">新增自訂分類類別</label>
+              <div class="add-category-bar">
+                <input
+                  type="text"
+                  id="new-category-input"
+                  class="glass-input"
+                  placeholder="輸入新分類名稱，例如：水彩手稿..."
+                />
+                <button type="button" id="add-category-btn" class="btn-prism btn-add-cat">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>新增分類</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Custom Categories Quick Management Bar -->
+          <div id="custom-categories-wrap" class="custom-categories-wrap hidden">
+            <span class="custom-cat-label">已新增的自訂分類：</span>
+            <div id="custom-categories-list" class="custom-categories-list"></div>
+          </div>
+
+          <!-- Portfolio-specific fields -->
+          <div id="portfolio-extra-fields" class="form-row-triple hidden">
+            <div class="form-group">
+              <label for="artwork-title">作品名稱（選填）</label>
+              <input type="text" id="artwork-title" class="glass-input" placeholder="例如：〈虹彩折射 No.09〉" />
+            </div>
+            <div class="form-group">
+              <label for="artwork-medium">創作媒材 / 尺寸規格</label>
+              <input type="text" id="artwork-medium" class="glass-input" placeholder="例如：3D 光學渲染 / 二向色玻璃" />
+            </div>
+            <div class="form-group">
+              <label for="artwork-year">創作年份</label>
+              <input type="text" id="artwork-year" class="glass-input" value="2026" />
+            </div>
+          </div>
+
+          <!-- Rich Text Formatting Toolbar & Textarea -->
+          <div class="form-group">
+            <div class="editor-label-bar">
+              <label for="post-content" id="content-label">內文敘述（支援 Markdown 語法與段落排版）</label>
+              <div class="format-toolbar liquid-glass-inset">
+                <button type="button" class="fmt-btn" data-fmt="bold" title="粗體"><strong>B</strong></button>
+                <button type="button" class="fmt-btn" data-fmt="italic" title="斜體"><em>I</em></button>
+                <button type="button" class="fmt-btn" data-fmt="heading" title="副標題">H2</button>
+                <button type="button" class="fmt-btn" data-fmt="quote" title="引言">“ ”</button>
+                <button type="button" class="fmt-btn" data-fmt="list" title="清單">• 清單</button>
+              </div>
+            </div>
+            <textarea id="post-content" class="glass-input glass-textarea" rows="6" placeholder="寫下您的創作理念、靈感來源、技法筆記或是作品背後的故事..."></textarea>
+          </div>
+
+          <div class="form-row-split align-end">
+            <div class="form-group">
+              <label for="post-tags">標籤（以逗號或空白分隔）</label>
+              <input type="text" id="post-tags" class="glass-input" placeholder="LiquidGlass, 虹彩光學, 2026新作, 數位雕塑" />
+            </div>
+
+            <div class="publish-actions">
+              <label class="checkbox-pill liquid-glass-inset" id="also-sync-wrap">
+                <input type="checkbox" id="sync-both-check" />
+                <span>同時收錄至作品集與部落格</span>
+              </label>
+              <button type="submit" class="btn-prism btn-submit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 2L11 13"/>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+                <span id="submit-btn-text">立即發佈文章</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Portfolio Gallery Section -->
+    <section class="portfolio-section" id="portfolio-section">
+      <div class="section-header">
+        <div>
+          <span class="section-eyebrow">CURATED WORKS // 01</span>
+          <h2 class="section-title">作品集</h2>
+        </div>
+
+        <div class="filter-bar liquid-glass" id="portfolio-filters" role="tablist" aria-label="作品集分類篩選"></div>
+      </div>
+
+      <div id="portfolio-grid" class="portfolio-grid"></div>
+    </section>
+
+    <!-- Artist Blog Section -->
+    <section class="blog-section" id="blog-section">
+      <div class="section-header">
+        <div>
+          <span class="section-eyebrow">ARTIST JOURNAL // 02</span>
+          <h2 class="section-title">藝術家部落格與創作日誌</h2>
+        </div>
+
+        <div class="filter-bar liquid-glass" id="blog-filters" role="tablist" aria-label="部落格分類篩選"></div>
+      </div>
+
+      <div id="blog-grid" class="blog-grid"></div>
+    </section>
+
+    <!-- Visitor Contact Section -->
+    <section class="contact-section" id="contact-section">
+      <div class="section-header">
+        <div>
+          <span class="section-eyebrow">CONTACT ARTIST // 03</span>
+          <h2 class="section-title">聯絡藝術家</h2>
+        </div>
+      </div>
+
+      <div class="contact-card liquid-glass-heavy">
+        <!-- Owner Only: Receiving Email Configuration -->
+        <div class="owner-email-config liquid-glass-inset owner-only hidden">
+          <div class="owner-email-info">
+            <span class="custom-cat-label">📩 藝術家接收信箱設定（僅創作者模式可見）：</span>
+            <p class="owner-email-desc">訪客送出的問題將自動帶入此收件信箱並開啟 Gmail 傳送，同時儲存在下方內建提問紀錄中。</p>
+          </div>
+          <div class="owner-email-input-row">
+            <input
+              type="email"
+              id="artist-receiving-email-input"
+              class="glass-input"
+              value="linjinchuan7777@gmail.com"
+              placeholder="請輸入您的接收信箱，例如：linjinchuan7777@gmail.com"
+            />
+            <button type="button" id="save-artist-email-btn" class="btn-prism btn-add-cat">
+              儲存信箱
+            </button>
+          </div>
+        </div>
+
+        <form id="contact-form" class="contact-form" novalidate>
+          <div class="form-row-split">
+            <div class="form-group">
+              <label for="contact-salutation">您的稱謂</label>
+              <input
+                type="text"
+                id="contact-salutation"
+                class="glass-input"
+                placeholder="例如：陳先生、林小姐、王老師..."
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="contact-visitor-email">訪客信箱</label>
+              <input
+                type="email"
+                id="contact-visitor-email"
+                class="glass-input"
+                placeholder="請輸入您的電子信箱，以便藝術家回覆您"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="contact-message">內文</label>
+            <textarea
+              id="contact-message"
+              class="glass-input glass-textarea"
+              rows="6"
+              placeholder="請輸入您想詢問的問題、展覽合作或創作交流內容..."
+              required
+            ></textarea>
+          </div>
+
+          <div class="contact-submit-row">
+            <span class="contact-hint" id="contact-target-hint">填寫完成後點擊發送，訊息將傳送至藝術家信箱 (linjinchuan7777@gmail.com)</span>
+            <button type="submit" class="btn-prism btn-submit" id="contact-submit-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 2L11 13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+              <span id="contact-submit-text">傳送問題至藝術家信箱</span>
+            </button>
+          </div>
+
+          <div id="contact-success-banner" class="contact-success-banner hidden" role="status">
+            <span class="rainbow-pulse"></span>
+            <span id="contact-success-text">✅ 您的問題已成功發送！藝術家收到信件後將回覆至您的信箱。</span>
+          </div>
+        </form>
+
+        <!-- Owner Only: Built-in Visitor Messages Inbox -->
+        <div id="owner-inbox-wrap" class="owner-inbox-wrap liquid-glass-inset owner-only hidden">
+          <div class="preview-header">
+            <span>📬 網站內建訪客提問紀錄（僅藝術家登入可見）</span>
+            <button type="button" class="text-btn" id="clear-inbox-btn">清空紀錄</button>
+          </div>
+          <div id="owner-inbox-list" class="owner-inbox-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Lightbox & Article Reader Modal -->
+  <div id="detail-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card liquid-glass-heavy">
+      <button class="modal-close liquid-glass-pill" id="modal-close-btn" aria-label="關閉視窗">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div id="modal-body-content" class="modal-body-content"></div>
+    </div>
+  </div>
+
+  <!-- Artist Authentication & Password Settings Modal -->
+  <div id="auth-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <div class="modal-card auth-modal-card liquid-glass-heavy">
+      <button class="modal-close liquid-glass-pill" id="auth-modal-close" aria-label="關閉驗證視窗">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Login Form View -->
+      <form id="artist-login-form" class="auth-form-wrap">
+        <div class="artist-badge liquid-glass-pill">
+          <span class="rainbow-pulse"></span>
+          <span>ARTIST OWNER AUTHENTICATION</span>
+        </div>
+        <h2 id="auth-modal-title" class="section-title">藝術家本人登入</h2>
+        <p class="auth-desc">
+          本網站目前已設為<strong>「訪客唯讀模式」</strong>，一般訪客僅能瀏覽作品集與閱讀部落格文章。請輸入您的藝術家通行密碼以解鎖發佈與上傳工作台。
+        </p>
+        <div class="form-group">
+          <label for="artist-pwd-input">藝術家通行密碼</label>
+          <input
+            type="password"
+            id="artist-pwd-input"
+            class="glass-input"
+            placeholder="請輸入藝術家通行密碼"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+        <div class="auth-actions">
+          <button type="button" class="btn-glass" id="auth-cancel-btn">取消</button>
+          <button type="submit" class="btn-prism">解鎖創作者模式</button>
+        </div>
+      </form>
+
+      <!-- Change Password View -->
+      <form id="change-pwd-form" class="auth-form-wrap hidden">
+        <div class="artist-badge liquid-glass-pill">
+          <span class="rainbow-pulse"></span>
+          <span>SECURITY SETTINGS</span>
+        </div>
+        <h2 class="section-title">修改藝術家通行密碼</h2>
+        <p class="auth-desc">
+          設定您的新通行密碼，防止他人進入發佈工作台或刪除作品。
+        </p>
+        <div class="form-group">
+          <label for="new-pwd-input">輸入新密碼</label>
+          <input
+            type="password"
+            id="new-pwd-input"
+            class="glass-input"
+            placeholder="請輸入至少 4 位字元的新密碼"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="confirm-pwd-input">再次確認新密碼</label>
+          <input
+            type="password"
+            id="confirm-pwd-input"
+            class="glass-input"
+            placeholder="請再次輸入新密碼"
+            required
+          />
+        </div>
+        <div class="auth-actions">
+          <button type="button" class="btn-glass" id="change-pwd-cancel-btn">返回</button>
+          <button type="submit" class="btn-prism">儲存新密碼</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-inner liquid-glass">
+      <div class="footer-brand">
+        <span class="brand-droplet"></span>
+        <span>林擎帥Qiunshuai Lin // 藝術家創作日誌與作品集</span>
+      </div>
+      <p class="footer-note" id="footer-mode-note">目前為訪客唯讀瀏覽模式 · 僅藝術家本人登入後可發佈與管理作品</p>
+      <div class="footer-actions">
+        <button class="text-btn owner-only hidden" id="reset-demo-btn" title="還原預設示範作品與文章">還原示範資料</button>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
